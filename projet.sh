@@ -12,7 +12,6 @@ function afficherElts()
 #Affiche le nom d'un element en particulier (Par défaut: CHEMIN COMPLET)
 #$1: liste	$2:elt a recup	$3:chemin complet?
 #3 arguments: Affiche le nom sans son chemin
-
 function afficherElt()
 {
 	res=`echo "$1"|cut -d: -f$2` #recupere l'element en question
@@ -24,8 +23,34 @@ function getNom()
 	res=`echo "$1"|sed "s/.*\\///g"`
 }
 
+#A partir d'un chemin complet, retourne la taille du fichier
+function getTaille()
+{
+	res=`stat -c %s $1`
+	#echo $res
+}
+
 
 #compare taille entre elt1 et elt2
+#OK si tailleelt1>tailleelt2 sinon KO
+#Nom AVEC chemin complet
+function cmpTaille()
+{
+	
+	getTaille "$1"
+	taille1=$res
+	getTaille "$2"
+	taille2=$res
+	
+	if (test $taille1 -gt $taille2)
+		then res="OK"
+	else
+		res="KO"
+	fi
+}
+
+
+#compare nom entre elt1 et elt2
 #OK si elt1>elt2 sinon KO
 #Nom AVEC chemin complet
 function cmpNom()
@@ -141,7 +166,11 @@ function afficherNoms()
 	for i in $1
 	{
 		getNom $i
-		echo $res
+		nom=$res
+		getTaille $i
+		taille=$res
+		
+		echo "$nom	taille: $taille"
 	}
 }
 
@@ -170,8 +199,17 @@ liste=$res
 #switchElt "$liste" 9 11
 
 
+getTaille ~/Bureau/TDSHELL/
+getTaille ./projet.sh
 
+cmpTaille ./projet.sh ~/Bureau/TDSHELL/ 
+echo $res
 
+echo ">>>>>>>>TRI NOM"
 triBulle "$liste" "cmpNom"
+
+
+echo ">>>>>>>>TRI TAILLE"
+triBulle "$liste" "cmpTaille"
 
 #afficherEltChemin $1 5
