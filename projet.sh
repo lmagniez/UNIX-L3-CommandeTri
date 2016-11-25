@@ -298,6 +298,9 @@ function afficherNoms()
 		
 		echo "$nom	taille: $taille"
 	}
+	
+	IFS=$OLD_IFS
+	
 }
 
 
@@ -309,14 +312,13 @@ function afficherNoms()
 ##########################################
 
 
-afficherElts $1
-liste=$res
+
 
 #echo $liste
 #afficherElt "$liste" 1
 #echo "1: "$res
 
-afficherElt "$liste" 2
+#afficherElt "$liste" 2
 
 #echo "$liste"
 
@@ -329,32 +331,51 @@ afficherElt "$liste" 2
 #switchElt "$liste" 9 11
 
 
-getTaille ~/Bureau/TDSHELL/
-getTaille ./projet.sh
-
-cmpTaille ./projet.sh ~/Bureau/TDSHELL/ 
-cmpNom	./.git ./README.md
-echo $res
-
-echo "
+#getTaille ~/Bureau/TDSHELL/
+#getTaille ./projet.sh
 
 
-noms"
+
+#cmpTaille ./projet.sh ~/Bureau/TDSHELL/ 
+#cmpNom	./.git ./README.md
 
 #afficherNoms "$liste"
 
+
+afficherElts $1
+liste1=$res
+
+echo "liste1:" $liste1
+
+
+
+
 echo ">>>>>>>>TRI NOM"
 
-#tri_fusion "$liste" "cmpNom"
 
-echo "BULLE"
-#triBulle "$liste" "cmpNom"
+liste=$liste1
+tri_fusion "$liste" "cmpNom"
+
+liste=$liste1
+triBulle "$liste" "cmpNom"
 
 
+echo $liste1
 
 
 echo ">>>>>>>>TRI TAILLE"
-#triBulle "$liste" "cmpTaille"
+liste=$liste1
+tri_fusion "$liste" "cmpTaille"
+
+
+liste=$liste1
+triBulle "$liste" "cmpTaille"
+
+
+
+
+
+
 
 
 #afficherEltChemin $1 5
