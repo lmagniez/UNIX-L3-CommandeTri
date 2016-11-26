@@ -411,13 +411,13 @@ function tri_fusion()
 		echo "cmpFun:" $actualCmp
 		
 		
-		#initialise la table a nulle(contiendra toutes les partitions)
+		#initialise la table a null(contiendra toutes les partitions pour le cmpActuel)
 		newtab=""
 		
 		echo "newtab:" -$newtab-
 		
 		#tab="1:2:3:4:5:6:7:8"
-		#pour chaque partitions du tableau
+		#pour chaque partitions du tableau (de cmpPrecedent)
 		while (test "$tab" != "")
 		do
 			IFS=" "
@@ -453,10 +453,7 @@ function tri_fusion()
 		done 
 		
 		tab=`echo $newtab|sed "s|^:*||"` #supprimer ':' de trop 
-		
-		
-		
-		lastCmpFunc="$actualCmp"
+		lastCmpFunc="$actualCmp" #le cmpActuel devient le cmpPrecedent
 		
 	done
 	
@@ -474,6 +471,11 @@ function tri_fusion()
 
 #rechercher elements similaires
 #ajoute dans un nouveau tab
+
+#On parcoure la liste de debut a fin, et on regarde les elements a la suite etant identiques selon lastCmpFunc
+#On en fait des tas qu'on va trier juste ensuite avec newCmpFunc
+#On stocke les tas pour pouvoir partitionner a nouveau plus tard (si d'autres criteres de tris)
+
 #$1:liste $2:tab $3:deb $4:fin $5:lastCmpFunc $6:newCmpFunc 
 function rechercher_sim()
 {
@@ -493,7 +495,7 @@ function rechercher_sim()
 		then 
 			echo ">>>>> $i $cpt"
 			
-			#si on est bien la partition
+			#si on est bien dans la partition
 			if (test $cpt -ge $debRech -a $cpt -le $finRech) 
 			then
 				
@@ -511,7 +513,7 @@ function rechercher_sim()
 				if(test $aff != "OO")#fin du motif, on l'ajoute au tableau et execute le tri
 				then
 					echo HERE!
-					#ajoute pas si on a un motif d'une seule case
+					#ajoute pas si on a un motif d'une seule case (singleton)
 					if(test $debutMotif -ne `expr $cpt - 1`)
 					then
 						IFS=$OLD_IFS
@@ -531,6 +533,7 @@ function rechercher_sim()
 		cpt=`expr $cpt + 1`
 	done
 	
+	#derniere itération: on ajoute le dernier motif s'il n'est pas un singleton
 	IFS=$OLD_IFS
 	if(test $debutMotif -ne `expr $finRech`)
 	then
