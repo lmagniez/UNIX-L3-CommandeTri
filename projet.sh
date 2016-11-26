@@ -18,6 +18,13 @@ function afficherElt()
 	res=`echo "$1"|cut -d: -f$t` #recupere l'element en question
 }
 
+############################################
+############################################
+############################################
+############################################
+############################################
+
+
 #A partir d'un chemin complet, retourne le nom du fichier
 function getNom()
 {
@@ -27,9 +34,55 @@ function getNom()
 #A partir d'un chemin complet, retourne la taille du fichier
 function getTaille()
 {
-	res=`stat -c %s $1`
+	res=`stat -c %s "$1"`
 	#echo $res
 }
+
+
+#A partir d'un chemin complet, retourne la date de derniere modification du fichier
+function getDate()
+{
+	res=`stat -c %y "$1"`
+	#echo $res
+}
+
+
+#A partir d'un chemin complet, retourne le nb de lignes d'un fichier, 0 si un dossier
+function getLine()
+{
+	if (test -f "$1")
+	then
+		res=`wc -l < "$1"`
+	else
+		res=0
+	fi
+	
+	#echo $res
+}
+
+
+#A partir d'un chemin complet, l'extension du fichier, si pas d'extension, renvoie le nom (ordre alphabetique)
+function getExtension()
+{
+
+	if (test -f $1)
+	then
+		res=`echo "$1"|sed 's/.*\.//g'`
+	else
+		res=`echo "$1"|sed "s/.*\\///g"`
+	fi
+	
+	echo $res
+}
+
+
+
+
+############################################
+############################################
+############################################
+############################################
+############################################
 
 
 #compare taille entre elt1 et elt2
@@ -37,7 +90,6 @@ function getTaille()
 #Nom AVEC chemin complet
 function cmpTaille()
 {
-	
 	getTaille "$1"
 	taille1=$res
 	getTaille "$2"
@@ -58,9 +110,9 @@ function cmpNom()
 {
 	
 	getNom "$1"
-	nom1=$res
+	nom1="$res"
 	getNom "$2"
-	nom2=$res
+	nom2="$res"
 	
 	if (test "$nom1" \> "$nom2")
 		then res="OK"
@@ -68,6 +120,69 @@ function cmpNom()
 		res="KO"
 	fi
 }
+
+#compare date entre elt1 et elt2
+#OK si d1>d2 sinon KO (ok si d1 est plus récent)
+#Nom AVEC chemin complet
+function cmpDate()
+{
+	
+	getDate "$1"
+	d1="$res"
+	getDate "$2"
+	d2="$res"
+	
+	if (test "$d1" \> "$d2")
+		then res="OK"
+	else
+		res="KO"
+	fi
+}
+
+
+#compare date entre elt1 et elt2
+#OK si l1>l2 sinon KO (ok si l1 a plus de lignes)
+#Nom AVEC chemin complet
+function cmpLine()
+{
+	
+	getLine "$1"
+	l1=$res
+	getLine "$2"
+	l2=$res
+	
+	if (test $l1 -gt $l2)
+		then res="OK"
+	else
+		res="KO"
+	fi
+}
+
+#compare nom entre elt1 et elt2
+#OK si elt1>elt2 sinon KO
+#Nom AVEC chemin complet
+function cmpExtension()
+{
+	
+	getExtension "$1"
+	nom1="$res"
+	getExtension "$2"
+	nom2="$res"
+	
+	if (test "$nom1" \> "$nom2")
+		then res="OK"
+	else
+		res="KO"
+	fi
+}
+
+############################################
+############################################
+############################################
+############################################
+############################################
+
+
 
 #taille de la liste
 function len()
@@ -130,6 +245,15 @@ function changeElt()
 	
 }
 
+
+
+############################################
+############################################
+############################################
+############################################
+############################################
+
+
 #Prend une liste en parametre
 #$1: liste	$2: nom fonction comparaison
 function triBulle()
@@ -154,6 +278,7 @@ function triBulle()
 			elt2="$res"
 			
 			#fonction de comparaison
+			
 			$2 "$elt1" "$elt2"
 			
 			
@@ -168,11 +293,17 @@ function triBulle()
 	    long=`expr $long - 1`
 	done
 	
-	afficherNoms "$liste"
+	afficher "$liste" "$2"
 		
 	
 	
 }
+
+############################################
+############################################
+############################################
+############################################
+############################################
 
 #$1:liste $2:cmpFonc
 function tri_fusion()
@@ -186,7 +317,7 @@ function tri_fusion()
 		liste="$res"
 	fi
 	
-	afficherNoms "$liste"
+	afficher "$liste" "$2"
 	res="$liste"
 }
 
@@ -282,10 +413,67 @@ function fusion()
 	
 }
 
+############################################
+############################################
+############################################
+############################################
+############################################
 
+#$1:liste $2:cmpFunc
+function afficher()
+{
+	if (test $2 = "cmpTaille" -o $2 = "cmpNom" -o $2 = "cmpExtension")
+	then
+		afficherNoms "$1"
+	elif (test $2 = "cmpDate")
+	then
+		afficherDate "$1"
+	elif (test $2 = "cmpLine")
+	then
+		afficherLine "$1"	
+	fi
+}
 
-
+#$1:liste
 function afficherNoms()
+{
+	OLD_IFS=$IFS
+	IFS=":"
+	for i in $1
+	{
+		getNom "$i"
+		nom=$res
+		getTaille "$i"
+		taille=$res
+		
+		echo "$nom	taille: $taille"
+	}
+	
+	IFS=$OLD_IFS
+	
+}
+
+#$1:liste
+function afficherDate()
+{
+	OLD_IFS=$IFS
+	IFS=":"
+	for i in $1
+	{
+		getNom "$i"
+		nom=$res
+		getDate "$i"
+		date=$res
+		
+		echo "$nom	 date: $date"
+	}
+	
+	IFS=$OLD_IFS
+	
+}
+
+#$1:liste
+function afficherLine()
 {
 	OLD_IFS=$IFS
 	IFS=":"
@@ -293,10 +481,10 @@ function afficherNoms()
 	{
 		getNom $i
 		nom=$res
-		getTaille $i
-		taille=$res
+		getLine $i
+		line=$res
 		
-		echo "$nom	taille: $taille"
+		echo "$nom	 nbLignes: $line"
 	}
 	
 	IFS=$OLD_IFS
@@ -342,6 +530,12 @@ function afficherNoms()
 #afficherNoms "$liste"
 
 
+#getDate ./projet.sh
+#d1=$res
+#getDate ~/Bureau/TDSHELL/
+#d2=$res
+
+
 afficherElts $1
 liste1=$res
 
@@ -353,29 +547,55 @@ echo "liste1:" $liste1
 echo ">>>>>>>>TRI NOM"
 
 
-liste=$liste1
+liste="$liste1"
 tri_fusion "$liste" "cmpNom"
 
-liste=$liste1
-triBulle "$liste" "cmpNom"
+#liste="$liste1"
+#triBulle "$liste" "cmpNom"
 
 
-echo $liste1
+echo "$liste1"
 
 
 echo ">>>>>>>>TRI TAILLE"
-liste=$liste1
+liste="$liste1"
 tri_fusion "$liste" "cmpTaille"
 
 
-liste=$liste1
-triBulle "$liste" "cmpTaille"
+#liste="$liste1"
+#triBulle "$liste" "cmpTaille"
+
+echo "
+
+>>>>>>>>TRI DATE"
+
+liste="$liste1"
+tri_fusion "$liste" "cmpDate"
+
+echo "
+
+>>>>>>>>TRI Line"
+
+liste="$liste1"
+tri_fusion "$liste" "cmpLine"
+
+echo "
+
+>>>>>>>>TRI Extension"
+
+liste="$liste1"
+#tri_fusion "$liste" "cmpExtension"
 
 
+getExtension ./projet.sh
+echo $res
+getExtension ~/Bureau
+echo $res
+
+#sed 's/.*\.//g' ~/Bureau
 
 
-
-
-
+stat -c "id propriétaire: %u , nom propriétaire: %U" ./projet.sh
+stat -c "id groupe: %g , nom groupe: %G" ./projet.sh
 
 #afficherEltChemin $1 5
