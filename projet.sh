@@ -9,6 +9,17 @@ function afficherElts()
 	
 }
 
+function afficherEltsRec()
+{	
+	
+	res=`find $1 -name "*"`	
+	res=`echo "$res" | tr "\n$" ":"` #remplace saut de ligne par :
+	
+	echo $res
+	
+	
+}
+
 #Affiche le nom d'un element en particulier (Par défaut: CHEMIN COMPLET)
 #$1: liste	$2:elt a recup	$3:chemin complet?
 #3 arguments: Affiche le nom sans son chemin
@@ -76,7 +87,19 @@ function getExtension()
 }
 
 
+function getProprio()
+{
+	res=`stat -c %U "$1"`
+}
 
+function getGroupe()
+{
+	res=`stat -c %G "$1"`
+
+}
+
+#stat -c "id propriétaire: %u , nom propriétaire: %U" ./projet.sh
+#stat -c "id groupe: %g , nom groupe: %G" ./projet.sh
 
 ############################################
 ############################################
@@ -167,6 +190,35 @@ function cmpExtension()
 	getExtension "$1"
 	nom1="$res"
 	getExtension "$2"
+	nom2="$res"
+	
+	if (test "$nom1" \> "$nom2")
+		then res="OK"
+	else
+		res="KO"
+	fi
+}
+
+
+function cmpProprio
+{
+	getProprio "$1"
+	nom1="$res"
+	getProprio "$2"
+	nom2="$res"
+	
+	if (test "$nom1" \> "$nom2")
+		then res="OK"
+	else
+		res="KO"
+	fi
+}
+
+function cmpGroupe()
+{
+	getGroupe "$1"
+	nom1="$res"
+	getGroupe "$2"
 	nom2="$res"
 	
 	if (test "$nom1" \> "$nom2")
@@ -421,75 +473,53 @@ function fusion()
 
 #$1:liste $2:cmpFunc
 function afficher()
-{
-	if (test $2 = "cmpTaille" -o $2 = "cmpNom" -o $2 = "cmpExtension")
+{	
+	func=" "
+	affiche=""
+	elt=""
+	if (test $2 = "cmpTaille")
 	then
-		afficherNoms "$1"
+		func="getTaille"
+		affiche="taille:"
 	elif (test $2 = "cmpDate")
 	then
-		afficherDate "$1"
+		func="getDate"
+		affiche="date:"
 	elif (test $2 = "cmpLine")
 	then
-		afficherLine "$1"	
+		func="getLine"	
+		affiche="nbLignes:"
+	elif (test $2 = "cmpProprio")
+	then
+		func="getProprio"	
+		affiche="proprio:"
+	elif (test $2 = "cmpGroupe")
+	then
+		func="getGroupe"	
+		affiche="groupe:"
 	fi
-}
-
-#$1:liste
-function afficherNoms()
-{
+	
 	OLD_IFS=$IFS
 	IFS=":"
 	for i in $1
 	{
 		getNom "$i"
 		nom=$res
-		getTaille "$i"
-		taille=$res
 		
-		echo "$nom	taille: $taille"
+		if(test $func != " ")
+		then 
+			$func "$i"
+			elt=$res
+		fi
+		
+		echo "$nom		$affiche $elt"
 	}
 	
 	IFS=$OLD_IFS
 	
 }
 
-#$1:liste
-function afficherDate()
-{
-	OLD_IFS=$IFS
-	IFS=":"
-	for i in $1
-	{
-		getNom "$i"
-		nom=$res
-		getDate "$i"
-		date=$res
-		
-		echo "$nom	 date: $date"
-	}
-	
-	IFS=$OLD_IFS
-	
-}
 
-#$1:liste
-function afficherLine()
-{
-	OLD_IFS=$IFS
-	IFS=":"
-	for i in $1
-	{
-		getNom $i
-		nom=$res
-		getLine $i
-		line=$res
-		
-		echo "$nom	 nbLignes: $line"
-	}
-	
-	IFS=$OLD_IFS
-	
-}
 
 
 ###				MERDIER
@@ -537,7 +567,7 @@ function afficherLine()
 
 
 afficherElts $1
-liste1=$res
+liste1="$res"
 
 echo "liste1:" $liste1
 
@@ -599,3 +629,24 @@ stat -c "id propriétaire: %u , nom propriétaire: %U" ./projet.sh
 stat -c "id groupe: %g , nom groupe: %G" ./projet.sh
 
 #afficherEltChemin $1 5
+
+getProprio "./projet.sh"
+echo $res
+
+getGroupe "./projet.sh"
+echo $res
+
+
+#TRI RECURSIFS
+
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>"
+
+afficherEltsRec ./test
+liste1="$res"
+liste="$liste1"
+tri_fusion "$liste1" "cmpProprio"
+
+
+
