@@ -120,6 +120,8 @@ function cmpTaille()
 	
 	if (test $taille1 -gt $taille2)
 		then res="OK"
+	elif (test $taille1 -eq $taille2)
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -139,6 +141,8 @@ function cmpNom()
 	
 	if (test "$nom1" \> "$nom2")
 		then res="OK"
+	elif (test "$nom1" = "$nom2")
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -157,6 +161,8 @@ function cmpDate()
 	
 	if (test "$d1" \> "$d2")
 		then res="OK"
+	elif (test "$d1" = "$d2")
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -176,6 +182,8 @@ function cmpLine()
 	
 	if (test $l1 -gt $l2)
 		then res="OK"
+	elif (test $l1 -eq $l2)
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -194,6 +202,8 @@ function cmpExtension()
 	
 	if (test "$nom1" \> "$nom2")
 		then res="OK"
+	elif (test "$nom1" = "$nom2")
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -209,6 +219,8 @@ function cmpProprio
 	
 	if (test "$nom1" \> "$nom2")
 		then res="OK"
+	elif (test "$nom1" = "$nom2")
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -223,6 +235,8 @@ function cmpGroupe()
 	
 	if (test "$nom1" \> "$nom2")
 		then res="OK"
+	elif (test "$nom1" = "$nom2")
+		then res="OO"
 	else
 		res="KO"
 	fi
@@ -357,15 +371,194 @@ function triBulle()
 ############################################
 ############################################
 
-#$1:liste $2:cmpFonc
+#lance le tri fusion pour chaque arguments
+#$1:liste $2-$#:cmpFoncs
 function tri_fusion()
 {
-	len "$1"	
-	long=$res
+	liste="$1"
+	shift
+	
+	len "$liste"	
+	long=`expr $res - 1`
+	
+	echo $1
+	tri_fusion2 "$liste" "$1" 1 $long
+	liste="$res"
+	#####################
+	####################PLUSIEURS ARGS
+	#####################
+	
+	
+	OLD_IFS=$IFS
+	IFS=":"
+	tab="1:"$long
+	
+	cmps=$*
+	
+	lastCmpFunc="$1"
+	shift #enleve LastCmpFunc (ne sert plus)
+	
+	
+	#####################
+	#pour chaque cmpFonc#
+	#####################
+	
+	for actualCmp in $*
+	do
+
+		echo "tab:" -$tab-
+		echo "lastCmpFunc:" $lastCmpFunc
+		echo "cmpFun:" $actualCmp
+		
+		
+		#initialise la table a nulle(contiendra toutes les partitions)
+		newtab=""
+		
+		echo "newtab:" -$newtab-
+		
+		#tab="1:2:3:4:5:6:7:8"
+		#pour chaque partitions du tableau
+		while (test "$tab" != "")
+		do
+			IFS=" "
+			echo "TAB:"$tab
+			
+			#recupere debut et fin et les supprime 
+			deb=`echo "$tab"|cut -d: -f1`
+			fin=`echo "$tab"|cut -d: -f2`
+			tab=`echo "$tab"|sed "s|[^:]*[:]*||"` 
+			tab=`echo "$tab"|sed "s|[^:]*[:]*||"` 
+			IFS=":"
+			
+			echo "deb"-$deb- "fin"-$fin-
+			
+			
+			#cherche les nouvelles partitions de liste et execute les tris 
+			rechercher_sim "$liste" "$newtab" "$deb" "$fin" "$lastCmpFunc" "$actualCmp" 
+			liste="$res"
+			
+			#tabRes=`echo $tabRes|sed "s|^:*||"` #supprimer ':' de trop 
+			newtab="$newtab":"$tabRes"
+			newtab=`echo $newtab|sed "s|^:*||"` #supprimer ':' de trop 
+			
+		echo "
+		
+		
+		---------------------------------------------------
+		---------------------------------------------------
+		---------------------------------------------------
+		
+		"
+			
+		done 
+		
+		tab=`echo $newtab|sed "s|^:*||"` #supprimer ':' de trop 
+		
+		
+		
+		lastCmpFunc="$actualCmp"
+		
+	done
+	
+	IFS=$OLD_IFS
+	
+	echo ">>>>>>>>>>>>>>>
+	
+	
+	
+	$cmps
+	<<<<<<<<<<<<<"
+	
+}
+
+
+#rechercher elements similaires
+#ajoute dans un nouveau tab
+#$1:liste $2:tab $3:deb $4:fin $5:lastCmpFunc $6:newCmpFunc 
+function rechercher_sim()
+{
+	echo rechercherSim "$2" "$3" "$4" "$5"
+	
+	liste=$1
+	tabRes=$2
+	debRech=$3
+	finRech=$4
+	
+	debutMotif=$debRech #init motif
+	
+	cpt=0
+	for i in $liste
+	do
+		if (test $cpt -ne 0)
+		then 
+			echo ">>>>> $i $cpt"
+			
+			#si on est bien la partition
+			if (test $cpt -ge $debRech -a $cpt -le $finRech) 
+			then
+				
+				e1=`expr $debutMotif + 1`
+				e2=`expr $cpt + 1`
+				elt1=`echo "$liste"|cut -d: -f$e1`
+				elt2=`echo "$liste"|cut -d: -f$e2`
+				
+				echo $elt1 $elt2
+				
+				$5 $elt1 $elt2
+				aff=$res
+				echo $aff
+				
+				if(test $aff != "OO")#fin du motif, on l'ajoute au tableau et execute le tri
+				then
+					echo HERE!
+					#ajoute pas si on a un motif d'une seule case
+					if(test $debutMotif -ne `expr $cpt - 1`)
+					then
+						IFS=$OLD_IFS
+						tabRes=$tabRes:"$debutMotif:"`expr $cpt - 1`
+						tri_fusion2 "$liste" "$6" $debutMotif `expr $cpt - 1`
+						liste="$res"
+						IFS=":"
+					fi
+					debutMotif=`expr $cpt`
+					#`expr $cpt - 1`
+				fi
+				echo $cpt
+			fi
+			
+			
+		fi
+		cpt=`expr $cpt + 1`
+	done
+	
+	IFS=$OLD_IFS
+	if(test $debutMotif -ne `expr $finRech`)
+	then
+		
+		tabRes=$tabRes:"$debutMotif:"$finRech
+		tri_fusion2 "$liste" "$6" $debutMotif $finRech
+		liste="$res"
+	fi
+	tabRes=`echo $tabRes|sed "s|^:*||"` #supprimer ':' de trop 
+	#IFS=":"
+	
+	
+	
+	echo "tabRES!!!!! "$tabRes
+	
+}
+
+
+#lance le tri fusion pour les indices debut à fin en utilisant la fonction cmpFonc
+#$1:liste $2:cmpFonc $3:debut $4:fin
+function tri_fusion2()
+{
+	
+	echo triFUSION -$2- -$3- -$4-
 	
 	if [ $long -gt 0 ]
 	then
-		tri_fusion_bis "$1" "$2" 1 `expr $long - 1`
+		tri_fusion_bis "$1" "$2" $3 $4
 		liste="$res"
 	fi
 	
@@ -646,7 +839,9 @@ echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 afficherEltsRec ./test
 liste1="$res"
 liste="$liste1"
-tri_fusion "$liste1" "cmpProprio"
+#tri_fusion "$liste" "cmpProprio"
 
+liste="$liste1"
 
+tri_fusion "$liste" "cmpProprio" "cmpTaille" "cmpNom" 
 
