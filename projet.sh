@@ -372,20 +372,26 @@ function triBulle()
 ############################################
 
 #lance le tri fusion pour chaque arguments
-#$1:liste $2-$#:cmpFoncs
+#$1:liste $2:inv? $3-$#:cmpFoncs
 function tri_fusion()
 {
 	liste="$1"
+	inv=$2
+	
+	echo inv $inv
+	echo inv $1
+	
+	shift
 	shift
 	
 	len "$liste"	
 	long=`expr $res - 1`
 	
-	echo $1
-	tri_fusion2 "$liste" "$1" 1 $long
+	#echo $1
+	tri_fusion2 "$liste" "$1" 1 $long $inv
 	liste="$res"
 	#####################
-	####################PLUSIEURS ARGS
+	#	PLUSIEURS ARGS	#
 	#####################
 	
 	
@@ -405,23 +411,22 @@ function tri_fusion()
 	
 	for actualCmp in $*
 	do
-
-		echo "tab:" -$tab-
-		echo "lastCmpFunc:" $lastCmpFunc
-		echo "cmpFun:" $actualCmp
+		
+		#echo "tab:" -$tab-
+		#echo "lastCmpFunc:" $lastCmpFunc
+		#echo "cmpFun:" $actualCmp
 		
 		
 		#initialise la table a null(contiendra toutes les partitions pour le cmpActuel)
 		newtab=""
 		
-		echo "newtab:" -$newtab-
+		#echo "newtab:" -$newtab-
 		
-		#tab="1:2:3:4:5:6:7:8"
 		#pour chaque partitions du tableau (de cmpPrecedent)
 		while (test "$tab" != "")
 		do
 			IFS=" "
-			echo "TAB:"$tab
+			#echo "TAB:"$tab
 			
 			#recupere debut et fin et les supprime 
 			deb=`echo "$tab"|cut -d: -f1`
@@ -430,25 +435,16 @@ function tri_fusion()
 			tab=`echo "$tab"|sed "s|[^:]*[:]*||"` 
 			IFS=":"
 			
-			echo "deb"-$deb- "fin"-$fin-
+			#echo "deb"-$deb- "fin"-$fin-
 			
 			
 			#cherche les nouvelles partitions de liste et execute les tris 
-			rechercher_sim "$liste" "$newtab" "$deb" "$fin" "$lastCmpFunc" "$actualCmp" 
+			rechercher_sim "$liste" "$newtab" "$deb" "$fin" "$lastCmpFunc" "$actualCmp" $inv
 			liste="$res"
 			
 			#tabRes=`echo $tabRes|sed "s|^:*||"` #supprimer ':' de trop 
 			newtab="$newtab":"$tabRes"
 			newtab=`echo $newtab|sed "s|^:*||"` #supprimer ':' de trop 
-			
-		echo "
-		
-		
-		---------------------------------------------------
-		---------------------------------------------------
-		---------------------------------------------------
-		
-		"
 			
 		done 
 		
@@ -459,12 +455,9 @@ function tri_fusion()
 	
 	IFS=$OLD_IFS
 	
-	echo ">>>>>>>>>>>>>>>
+	#echo ">>>>>>$cmps<<<<<<"
 	
-	
-	
-	$cmps
-	<<<<<<<<<<<<<"
+	afficher2 $liste $cmps
 	
 }
 
@@ -476,10 +469,10 @@ function tri_fusion()
 #On en fait des tas qu'on va trier juste ensuite avec newCmpFunc
 #On stocke les tas pour pouvoir partitionner a nouveau plus tard (si d'autres criteres de tris)
 
-#$1:liste $2:tab $3:deb $4:fin $5:lastCmpFunc $6:newCmpFunc 
+#$1:liste $2:tab $3:deb $4:fin $5:lastCmpFunc $6:newCmpFunc $7:inv?
 function rechercher_sim()
 {
-	echo rechercherSim "$2" "$3" "$4" "$5"
+	echo "rechercherSim" "$2" "$3" "$4" "$5" "$7"
 	
 	liste=$1
 	tabRes=$2
@@ -493,7 +486,7 @@ function rechercher_sim()
 	do
 		if (test $cpt -ne 0)
 		then 
-			echo ">>>>> $i $cpt"
+			#echo ">>>>> $i $cpt"
 			
 			#si on est bien dans la partition
 			if (test $cpt -ge $debRech -a $cpt -le $finRech) 
@@ -504,28 +497,26 @@ function rechercher_sim()
 				elt1=`echo "$liste"|cut -d: -f$e1`
 				elt2=`echo "$liste"|cut -d: -f$e2`
 				
-				echo $elt1 $elt2
+				#echo $elt1 $elt2
 				
 				$5 $elt1 $elt2
 				aff=$res
-				echo $aff
+				#echo $aff
 				
 				if(test $aff != "OO")#fin du motif, on l'ajoute au tableau et execute le tri
 				then
-					echo HERE!
 					#ajoute pas si on a un motif d'une seule case (singleton)
 					if(test $debutMotif -ne `expr $cpt - 1`)
 					then
 						IFS=$OLD_IFS
 						tabRes=$tabRes:"$debutMotif:"`expr $cpt - 1`
-						tri_fusion2 "$liste" "$6" $debutMotif `expr $cpt - 1`
+						tri_fusion2 "$liste" "$6" $debutMotif `expr $cpt - 1` $7
 						liste="$res"
 						IFS=":"
 					fi
 					debutMotif=`expr $cpt`
-					#`expr $cpt - 1`
 				fi
-				echo $cpt
+				#echo $cpt
 			fi
 			
 			
@@ -539,37 +530,37 @@ function rechercher_sim()
 	then
 		
 		tabRes=$tabRes:"$debutMotif:"$finRech
-		tri_fusion2 "$liste" "$6" $debutMotif $finRech
+		tri_fusion2 "$liste" "$6" $debutMotif $finRech $7
 		liste="$res"
 	fi
 	tabRes=`echo $tabRes|sed "s|^:*||"` #supprimer ':' de trop 
-	#IFS=":"
 	
 	
 	
-	echo "tabRES!!!!! "$tabRes
+	#echo "tabRES!!!!! "$tabRes
+	res="$liste"
 	
 }
 
 
 #lance le tri fusion pour les indices debut à fin en utilisant la fonction cmpFonc
-#$1:liste $2:cmpFonc $3:debut $4:fin
+#$1:liste $2:cmpFonc $3:debut $4:fin $5:rec?(0/1)
 function tri_fusion2()
 {
 	
-	echo triFUSION -$2- -$3- -$4-
+	echo triFUSION -$2- -$3- -$4- inv -$5-
 	
 	if [ $long -gt 0 ]
 	then
-		tri_fusion_bis "$1" "$2" $3 $4
+		tri_fusion_bis "$1" "$2" $3 $4 $5
 		liste="$res"
 	fi
 	
-	afficher "$liste" "$2"
+	#afficher2 "$liste" "$2"
 	res="$liste"
 }
 
-#$1:liste $2:cmpFonc $3:deb  $4:fin 
+#$1:liste $2:cmpFonc $3:deb  $4:fin $5:rec?(0/1)
 function tri_fusion_bis()
 {	
 	
@@ -582,17 +573,17 @@ function tri_fusion_bis()
 	
 		#partition1
 		milieu=`expr \( $4 + $3 \) / 2`
-		tri_fusion_bis "$liste" "$2" $3 $milieu #deb milieu
+		tri_fusion_bis "$liste" "$2" $3 $milieu $5 #deb milieu
 		liste="$res"
 		
 		#partition2
 		milieu=`expr \( $4 + $3 \) / 2` #doit recalculer (SINON utilise milieu de fonction rec)
-		tri_fusion_bis "$liste" "$2" `expr $milieu + 1` $4 #milieu+1 fin
+		tri_fusion_bis "$liste" "$2" `expr $milieu + 1` $4 $5 #milieu+1 fin
 		liste="$res"
 		
 		#fusion
 		milieu=`expr \( $4 + $3 \) / 2` #doit recalculer (SINON utilise milieu de fonction rec)
-		fusion "$liste" "$2" $3 $milieu $4 #fusion deb milieu fin
+		fusion "$liste" "$2" $3 $milieu $4 $5 #fusion deb milieu fin
 		liste="$res"
 	fi
 	
@@ -602,7 +593,7 @@ function tri_fusion_bis()
 	
 }
 
-#$1:liste $2:cmpFonc $3:deb $4:milieu $5:fin 
+#$1:liste $2:cmpFonc $3:deb $4:milieu $5:fin $6:rec?(0:1)
 function fusion()
 {
 	deb=$3
@@ -642,7 +633,16 @@ function fusion()
 			$2 "$elt1" "$elt2"
 			
 			#tab[cp1]<tab[cpt2]?
-			if (test "$res" = "KO")
+			
+			if (test "$6" = 0)
+			then
+				cmpVal="KO"
+			else
+				cmpVal="OK"
+			fi
+			
+			
+			if (test "$res" = $cmpVal)
 			then
 				#KO: true Change Elt1
 				changeElt "$liste" $i "$elt1" 
@@ -667,48 +667,55 @@ function fusion()
 ############################################
 ############################################
 
-#$1:liste $2:cmpFunc
-function afficher()
+
+#$1:liste $2:cmpFuncs
+function afficher2()
 {	
 	func=" "
 	affiche=""
 	elt=""
-	if (test $2 = "cmpTaille")
-	then
-		func="getTaille"
-		affiche="taille:"
-	elif (test $2 = "cmpDate")
-	then
-		func="getDate"
-		affiche="date:"
-	elif (test $2 = "cmpLine")
-	then
-		func="getLine"	
-		affiche="nbLignes:"
-	elif (test $2 = "cmpProprio")
-	then
-		func="getProprio"	
-		affiche="proprio:"
-	elif (test $2 = "cmpGroupe")
-	then
-		func="getGroupe"	
-		affiche="groupe:"
-	fi
 	
 	OLD_IFS=$IFS
 	IFS=":"
+	
+	#echo $1
+	
+	
 	for i in $1
 	{
-		getNom "$i"
-		nom=$res
 		
-		if(test $func != " ")
-		then 
-			$func "$i"
-			elt=$res
-		fi
+		resultat="$i	"
 		
-		echo "$nom		$affiche $elt"
+		for j in $2
+		do
+			if (test $j = "cmpNom")
+			then 
+				getNom $i
+				resultat=$resultat" 	nom: $res"
+			elif (test $j = "cmpTaille")
+			then
+				getTaille $i
+				resultat=$resultat"		taille: $res"
+			elif (test $j = "cmpDate")
+			then
+				getDate $i
+				resultat=$resultat"		date: $res" 
+			elif (test $j = "cmpLine")
+			then
+				getLine $i
+				resultat=$resultat"		nbLignes: $res"	
+			elif (test $j = "cmpProprio")
+			then
+				getProprio $i
+				resultat=$resultat"		proprio: $res" 
+			elif (test $j = "cmpGroupe")
+			then
+				getGroupe $i
+				resultat=$resultat"		groupe: $res" 
+			fi
+		done
+		
+		echo "$resultat"
 	}
 	
 	IFS=$OLD_IFS
@@ -728,123 +735,23 @@ function afficher()
 
 
 
-#echo $liste
-#afficherElt "$liste" 1
-#echo "1: "$res
-
-#afficherElt "$liste" 2
-
-#echo "$liste"
-
-#len "$liste"
-
-#cmpNom "test2" "test" 
-
-#switchElt "$liste" 3 4
-
-#switchElt "$liste" 9 11
-
-
-#getTaille ~/Bureau/TDSHELL/
-#getTaille ./projet.sh
-
-
-
-#cmpTaille ./projet.sh ~/Bureau/TDSHELL/ 
-#cmpNom	./.git ./README.md
-
-#afficherNoms "$liste"
-
-
-#getDate ./projet.sh
-#d1=$res
-#getDate ~/Bureau/TDSHELL/
-#d2=$res
-
-
-afficherElts $1
-liste1="$res"
-
-echo "liste1:" $liste1
-
-
-
-
-echo ">>>>>>>>TRI NOM"
-
-
-liste="$liste1"
-tri_fusion "$liste" "cmpNom"
-
-#liste="$liste1"
-#triBulle "$liste" "cmpNom"
-
-
-echo "$liste1"
-
-
-echo ">>>>>>>>TRI TAILLE"
-liste="$liste1"
-tri_fusion "$liste" "cmpTaille"
-
-
-#liste="$liste1"
-#triBulle "$liste" "cmpTaille"
-
-echo "
-
->>>>>>>>TRI DATE"
-
-liste="$liste1"
-tri_fusion "$liste" "cmpDate"
-
-echo "
-
->>>>>>>>TRI Line"
-
-liste="$liste1"
-tri_fusion "$liste" "cmpLine"
-
-echo "
-
->>>>>>>>TRI Extension"
-
-liste="$liste1"
-#tri_fusion "$liste" "cmpExtension"
-
-
-getExtension ./projet.sh
-echo $res
-getExtension ~/Bureau
-echo $res
-
-#sed 's/.*\.//g' ~/Bureau
-
-
-stat -c "id propriétaire: %u , nom propriétaire: %U" ./projet.sh
-stat -c "id groupe: %g , nom groupe: %G" ./projet.sh
-
-#afficherEltChemin $1 5
-
-getProprio "./projet.sh"
-echo $res
-
-getGroupe "./projet.sh"
-echo $res
-
 
 #TRI RECURSIFS
 
-echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>
->>>>>>>>>>>>>>>>>>>>>>>>>"
+afficherElts $1
+shift
 
-afficherEltsRec ./test
+
+#afficherEltsRec $1
 liste1="$res"
 liste="$liste1"
 #tri_fusion "$liste" "cmpProprio"
 
 liste="$liste1"
 
-tri_fusion "$liste" "cmpProprio" "cmpTaille" "cmpNom" 
 
+
+tri_fusion "$liste" $*
+#"cmpProprio" "cmpTaille" "cmpNom" 
+
+#tri_fusion "$liste" "cmpProprio"
