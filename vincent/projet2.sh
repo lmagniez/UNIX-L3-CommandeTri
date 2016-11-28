@@ -58,7 +58,7 @@ echo "Resultat comparaison type $res "
 recur=0
 decrois=0
 
-test $# -gt 5 && echo "Trop d'argument au maximum" && exit 1
+test $# -gt 4 && echo "Trop d'argument au maximum" && exit 1
 eval "rep=\${$#}"
 test ! -d "$rep" && echo "$rep n'est pas un dossier ! " && exit 1
 
@@ -73,7 +73,7 @@ function verifdoublon(){
 }
 
 
-#verification sil tous les tiret son correct
+#verification sil tous les tiret son correct pour les options
 for ((i=1;i<$#;i++));
 do 
 	eval "val=\${$i}"
@@ -89,7 +89,6 @@ do
 	esac
 done
 
-
 #recuperation des options
 for ((i=1;i<$#;i++));
 do 
@@ -103,8 +102,8 @@ do
    		;;
    		*)
 			str="$val"
-			for i in $(seq 2 ${#str}); do
-				car=$(echo $str | cut -c$i)
+			for j in $(seq 2 ${#str}); do
+				car=$(echo $str | cut -c$j)
 				case "$car" in 
 					n) 
 						verifdoublon "$nsdketpg" "cmpNom"
@@ -143,6 +142,7 @@ do
 					;;
 				esac
 			done
+		;;
 	esac
 done
 
@@ -155,10 +155,3 @@ echo "Options : $nsdketpg"
 echo "Recursif : $recur"
 
 echo "Decroissant : $decrois"
-
-
-
-
-
-
-
