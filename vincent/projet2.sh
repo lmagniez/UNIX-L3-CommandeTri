@@ -59,6 +59,9 @@ recur=0
 decrois=0
 
 test $# -gt 5 && echo "Trop d'argument au maximum" && exit 1
+eval "rep=\${$#}"
+test ! -d $rep && echo "$rep n'est pas un dossier ! " && exit 1
+
 
 function verifdoublon(){
 	chaine=$1
