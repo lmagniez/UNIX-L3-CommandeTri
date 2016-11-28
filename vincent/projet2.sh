@@ -50,6 +50,110 @@ function cmpType()
 cmpType "../vincent" "projet2.sh" 
 echo $res
 
+################################
+################################
+################################
+################################
+
+recur=0
+decrois=0
+
+test $# -gt 5 && echo "Trop d'argument au maximum" && exit 1
+
+function verifdoublon(){
+	chaine=$1
+	var=`echo ${chaine} | grep "$2" | wc -l`
+	if( test $var -ne 0 )
+	then
+		echo "Doublon dans les options" && exit 1
+	fi
+}
+
+#verification sil tous les tiret son correct
+for ((i=1;i<$#;i++));
+do 
+	eval "val=\${$i}"
+	case "$val" in 
+  		-*)
+   		;;
+   		*-)
+			echo "Le tiret est mal place" && exit 1
+   		;;
+   		*) 
+			echo "Il manque des tirets" && exit 1
+		;;
+	esac
+done
+
+
+#recuperation des options
+for ((i=1;i<$#;i++));
+do 
+	eval "val=\${$i}"
+	case "$val" in 
+  		-R)
+			recur=1
+   		;;
+   		-d)
+			decrois=1
+   		;;
+   		*)
+			str="$val"
+			for i in $(seq 2 ${#str}); do
+				car=$(echo $str | cut -c$i)
+				case "$car" in 
+					n) 
+						verifdoublon "$nsdketpg" "cmpNom"
+						nsdketpg="$nsdketpg cmpNom"
+					;;
+					s) 
+						verifdoublon "$nsdketpg" "cmpTaille"
+						nsdketpg="$nsdketpg cmpTaille"
+					;;
+					m) 
+						verifdoublon "$nsdketpg" "cmpDate"
+						nsdketpg="$nsdketpg cmpDate"
+					;;
+					l) 
+						verifdoublon "$nsdketpg" "cmpLigne"
+						nsdketpg="$nsdketpg cmpLigne"
+					;;
+					e) 
+						verifdoublon "$nsdketpg" "cmpExtension"
+						nsdketpg="$nsdketpg cmpExtension"
+					;;
+					t) 
+						verifdoublon "$nsdketpg" "cmpType"
+						nsdketpg="$nsdketpg cmpType"
+					;;
+					p) 
+						verifdoublon "$nsdketpg" "cmpProprio"
+						nsdketpg="$nsdketpg cmpProprio"
+					;;
+					g) 
+						verifdoublon "$nsdketpg" "cmpGroupe"
+						nsdketpg="$nsdketpg cmpGroupe"
+					;;
+					*) 
+						echo "Erreur Option" && exit 1
+					;;
+				esac
+			done
+	esac
+done
+
+if (test "$nsdketpg" = "");then 
+	nsdketpg="cmpNom"
+fi
+
+echo "Options : $nsdketpg"
+
+echo "Recursif : $recur"
+
+echo "Decroissant : $decrois"
+
+
+
 
 
 
