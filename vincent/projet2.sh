@@ -69,6 +69,7 @@ function verifdoublon(){
 	fi
 }
 
+
 #verification sil tous les tiret son correct
 for ((i=1;i<$#;i++));
 do 
