@@ -48,7 +48,7 @@ function cmpType()
 
 #test 
 cmpType "../vincent" "projet2.sh" 
-echo $res
+echo "Resultat comparaison type $res " 
 
 ################################
 ################################
@@ -60,7 +60,7 @@ decrois=0
 
 test $# -gt 5 && echo "Trop d'argument au maximum" && exit 1
 eval "rep=\${$#}"
-test ! -d $rep && echo "$rep n'est pas un dossier ! " && exit 1
+test ! -d "$rep" && echo "$rep n'est pas un dossier ! " && exit 1
 
 
 function verifdoublon(){
