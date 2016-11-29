@@ -93,6 +93,7 @@ done
 for ((i=1;i<$#;i++));
 do 
 	eval "val=\${$i}"
+	echo "G : $val"
 	case "$val" in 
   		-R)
 			recur=1
@@ -102,6 +103,7 @@ do
    		;;
    		*)
 			str="$val"
+			echo "C : $val"
 			for j in $(seq 2 ${#str}); do
 				car=$(echo $str | cut -c$j)
 				case "$car" in 
@@ -149,6 +151,9 @@ done
 if (test "$nsdketpg" = "");then 
 	nsdketpg="cmpNom"
 fi
+
+
+nsdketpg=`echo $nsdketpg|sed "s|^ *||"` #supprimer ' ' de trop 
 
 echo "Options : $nsdketpg"
 
