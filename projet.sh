@@ -90,11 +90,13 @@ function getLine()
 function getExtension()
 {
 
+	getNom $1
+
 	if (test -f $1)
 	then
-		res=`echo "$1"|sed 's/.*\.//g'`
+		res=`echo "$res"|sed 's/.*\.//g'`
 	else
-		res=`echo "$1"|sed "s/.*\\///g"`
+		res=`echo "$res"|sed "s/.*\\///g"`
 	fi
 	
 	echo $res
@@ -123,24 +125,31 @@ function recupValeur(){
 	if (test -d $1)
 		then
 		res=7
+		val="d"
 	elif (test -f $1)
 		then
 		res=6
+		val="f"
 	elif (test -l $1)
 		then
 		res=4
+		val="l"
 	elif (test -b $1)
 		then
 		res=3
+		val="b"
 	elif (test -c $1)
 		then
 		res=2
+		val="c"
 	elif (test -t $1)
 		then
 		res=1
+		val="t"
 	elif (test -s $1)
 		then
 		res=0
+		val="s"
 	fi
 }
 
@@ -783,6 +792,14 @@ function afficher2()
 			then
 				getGroupe $i
 				resultat=$resultat"		groupe: $res" 
+			elif (test $j = "cmpExtension")
+			then
+				getExtension $i
+				resultat=$resultat"		extension: $res" 
+			elif (test $j = "cmpType")
+			then
+				recupValeur $i
+				resultat=$resultat"		type: $val"
 			fi
 		done
 		
