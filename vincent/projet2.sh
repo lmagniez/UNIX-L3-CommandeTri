@@ -93,7 +93,6 @@ done
 for ((i=1;i<$#;i++));
 do 
 	eval "val=\${$i}"
-	echo "G : $val"
 	case "$val" in 
   		-R)
 			recur=1
@@ -101,10 +100,11 @@ do
    		-d)
 			decrois=1
    		;;
-   		*)
-			str="$val"
-			echo "C : $val"
-			for j in $(seq 2 ${#str}); do
+   		-*)
+			str="---"
+			str="$str""$val"	
+			str=`echo $str | sed "s/^-*//"`
+			for j in $(seq 1 ${#str}); do
 				car=$(echo $str | cut -c$j)
 				case "$car" in 
 					n) 
