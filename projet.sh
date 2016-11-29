@@ -1,6 +1,13 @@
 #! /bin/bash
 
+############################################
+############################################
+#		FONCTIONS GET ELEMENTS/LISTE	   #
+############################################
+############################################
+
 #Retourne la liste complete des fichiers (NON RECURSIF)
+#$1:chemin du fichier (relatif ou absolu)
 function afficherElts()
 {	
 	
@@ -9,6 +16,8 @@ function afficherElts()
 	
 }
 
+#Retourne la liste complete des fichiers (RECURSIF)
+#$1:chemin du fichier (relatif ou absolu)
 function afficherEltsRec()
 {	
 	
@@ -31,18 +40,20 @@ function afficherElt()
 
 ############################################
 ############################################
-############################################
+#	FONCTIONS GET (A PARTIR D'UN CHEMIN	   #
 ############################################
 ############################################
 
 
-#A partir d'un chemin complet, retourne le nom du fichier
+#A partir d'un chemin complet/relatif, retourne le nom du fichier (./test/aa -> aa)
+#$1:chemin
 function getNom()
 {
 	res=`echo "$1"|sed "s/.*\\///g"`
 }
 
-#A partir d'un chemin complet, retourne la taille du fichier
+#A partir d'un chemin complet/relatif, retourne la taille du fichier
+#$1:chemin
 function getTaille()
 {
 	res=`stat -c %s "$1"`
@@ -50,7 +61,8 @@ function getTaille()
 }
 
 
-#A partir d'un chemin complet, retourne la date de derniere modification du fichier
+#A partir d'un chemin complet/relatif, retourne la date de derniere modification du fichier
+#$1:chemin
 function getDate()
 {
 	res=`stat -c %y "$1"`
@@ -58,7 +70,8 @@ function getDate()
 }
 
 
-#A partir d'un chemin complet, retourne le nb de lignes d'un fichier, 0 si un dossier
+#A partir d'un chemin complet/relatif, retourne le nb de lignes d'un fichier, 0 si un dossier
+#$1:chemin
 function getLine()
 {
 	if (test -f "$1")
@@ -72,7 +85,8 @@ function getLine()
 }
 
 
-#A partir d'un chemin complet, l'extension du fichier, si pas d'extension, renvoie le nom (ordre alphabetique)
+#A partir d'un chemin complet/relatif, l'extension du fichier, si pas d'extension, renvoie le nom (ordre alphabetique)
+#$1:chemin
 function getExtension()
 {
 
@@ -86,31 +100,33 @@ function getExtension()
 	echo $res
 }
 
-
+#Chemin complet/relatif -> propriétaire
+#$1:chemin
 function getProprio()
 {
 	res=`stat -c %U "$1"`
 }
 
+#Chemin complet/relatif -> groupe
+#$1:chemin
 function getGroupe()
 {
 	res=`stat -c %G "$1"`
 
 }
 
-#stat -c "id propriétaire: %u , nom propriétaire: %U" ./projet.sh
-#stat -c "id groupe: %g , nom groupe: %G" ./projet.sh
-
 ############################################
 ############################################
-############################################
+#		FONCTIONS DE COMPARAISONS 		   #
+#		(A PARTIR DE 2 CHEMINS)			   #
 ############################################
 ############################################
 
 
 #compare taille entre elt1 et elt2
 #OK si tailleelt1>tailleelt2 sinon KO
-#Nom AVEC chemin complet
+#Nom AVEC chemin complet/relatif
+#$1:chemin elt1 	$2:chemin elt2
 function cmpTaille()
 {
 	getTaille "$1"
@@ -130,7 +146,8 @@ function cmpTaille()
 
 #compare nom entre elt1 et elt2
 #OK si elt1>elt2 sinon KO
-#Nom AVEC chemin complet
+#Nom AVEC chemin complet/relatif
+#$1:chemin elt1 	$2:chemin elt2
 function cmpNom()
 {
 	
@@ -150,7 +167,8 @@ function cmpNom()
 
 #compare date entre elt1 et elt2
 #OK si d1>d2 sinon KO (ok si d1 est plus récent)
-#Nom AVEC chemin complet
+#Nom AVEC chemin complet/relatif
+#$1:chemin elt1 	$2:chemin elt2
 function cmpDate()
 {
 	
@@ -171,7 +189,8 @@ function cmpDate()
 
 #compare date entre elt1 et elt2
 #OK si l1>l2 sinon KO (ok si l1 a plus de lignes)
-#Nom AVEC chemin complet
+#Nom AVEC chemin complet/relatif
+#$1:chemin elt1 	$2:chemin elt2
 function cmpLine()
 {
 	
@@ -191,7 +210,8 @@ function cmpLine()
 
 #compare nom entre elt1 et elt2
 #OK si elt1>elt2 sinon KO
-#Nom AVEC chemin complet
+#Nom AVEC chemin complet/relatif
+#$1:chemin elt1 	$2:chemin elt2
 function cmpExtension()
 {
 	
@@ -244,13 +264,14 @@ function cmpGroupe()
 
 ############################################
 ############################################
-############################################
+#			MANIPULATIONS DE LISTES 	   #
 ############################################
 ############################################
 
 
 
 #taille de la liste
+#$1:liste
 function len()
 {
 	OLD_IFS=$IFS
@@ -315,7 +336,7 @@ function changeElt()
 
 ############################################
 ############################################
-############################################
+#			TRI A BULLE (NON UTILISE	   #
 ############################################
 ############################################
 
@@ -367,7 +388,7 @@ function triBulle()
 
 ############################################
 ############################################
-############################################
+#	TRI FUSION (Pour plusieurs options     #
 ############################################
 ############################################
 
@@ -465,9 +486,11 @@ function tri_fusion()
 #rechercher elements similaires
 #ajoute dans un nouveau tab
 
-#On parcoure la liste de debut a fin, et on regarde les elements a la suite etant identiques selon lastCmpFunc
+#On parcoure la liste de debut a fin, et on regarde les elements a la suite étant identiques selon lastCmpFunc
 #On en fait des tas qu'on va trier juste ensuite avec newCmpFunc
-#On stocke les tas pour pouvoir partitionner a nouveau plus tard (si d'autres criteres de tris)
+#On stocke les tas pour pouvoir partitionner au prochain appel (si d'autres criteres de tris)
+
+#lastCmpFunc deviendra newCmpFunc et newCmp et le prochain element dans la liste de cmps
 
 #$1:liste $2:tab $3:deb $4:fin $5:lastCmpFunc $6:newCmpFunc $7:inv?
 function rechercher_sim()
@@ -563,7 +586,6 @@ function tri_fusion2()
 #$1:liste $2:cmpFonc $3:deb  $4:fin $5:rec?(0/1)
 function tri_fusion_bis()
 {	
-	
 	
 	liste=$1
 	deb=$3
@@ -663,12 +685,14 @@ function fusion()
 
 ############################################
 ############################################
-############################################
+#		Fonctions affichage				   #
 ############################################
 ############################################
 
-
-#$1:liste $2:cmpFuncs
+#Affiche pour une liste son chemin et l'ensemble des elts utilisés pour la comparaison
+#afficher2 "./aa:./test:./test/aa" "CmpNom CmpProprio CmpDate"
+#	-> Affiche chemin, nom, proprio et date pour chaque elt
+#$1:liste $2:cmpFuncs 
 function afficher2()
 {	
 	func=" "
@@ -754,4 +778,4 @@ liste="$liste1"
 tri_fusion "$liste" $*
 #"cmpProprio" "cmpTaille" "cmpNom" 
 
-#tri_fusion "$liste" "cmpProprio"
+#tri_fusion "$liste" 0 "cmpProprio" "cmpTaille" "cmpNom"
