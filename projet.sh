@@ -24,9 +24,7 @@ function afficherEltsRec()
 	res=`find $1 -name "*"`	
 	res=`echo "$res" | tr "\n$" ":"` #remplace saut de ligne par :
 	
-	echo $res
-	
-	
+	#echo $res
 }
 
 #Affiche le nom d'un element en particulier (Par défaut: CHEMIN COMPLET)
@@ -99,7 +97,7 @@ function getExtension()
 		res=`echo "$res"|sed "s/.*\\///g"`
 	fi
 	
-	echo $res
+	#echo $res
 }
 
 #Chemin complet/relatif -> propriétaire
@@ -444,7 +442,7 @@ function triBulle()
 
 ############################################
 ############################################
-#	TRI FUSION (Pour plusieurs options     #
+#	TRI FUSION (Pour plusieurs options)    #
 ############################################
 ############################################
 
@@ -454,9 +452,6 @@ function tri_fusion()
 {
 	liste="$1"
 	inv=$2
-	
-	echo inv $inv
-	echo inv $1
 	
 	shift
 	shift
@@ -551,7 +546,7 @@ function tri_fusion()
 #$1:liste $2:tab $3:deb $4:fin $5:lastCmpFunc $6:newCmpFunc $7:inv?
 function rechercher_sim()
 {
-	echo "rechercherSim" "$2" "$3" "$4" "$5" "$7"
+	#echo "rechercherSim" "$2" "$3" "$4" "$5" "$7"
 	
 	liste=$1
 	tabRes=$2
@@ -627,7 +622,7 @@ function rechercher_sim()
 function tri_fusion2()
 {
 	
-	echo triFUSION -$2- -$3- -$4- inv -$5-
+	#echo triFUSION -$2- -$3- -$4- inv -$5-
 	
 	if [ $long -gt 0 ]
 	then
@@ -868,10 +863,6 @@ done
 for ((i=1;i<$#;i++));
 do 
 	eval "val=\${$i}"
-	
-	echo ">>>>>>>>>>>>>"
-	echo "$val"
-	
 	case "$val" in 
   		-R)
 			recur=1
@@ -879,13 +870,12 @@ do
    		-d)
 			decrois=1
    		;;
-   		*)
-			str="$val"
-			echo "$str"
-			for j in $(seq 2 ${#str}); do
+   		-*)
+			str="---"
+			str="$str""$val"	
+			str=`echo $str | sed "s/^-*//"`
+			for j in $(seq 1 ${#str}); do
 				car=$(echo $str | cut -c$j)
-				echo $j
-				echo $car
 				case "$car" in 
 					n) 
 						verifdoublon "$nsdketpg" "cmpNom"
@@ -936,11 +926,9 @@ fi
 nsdketpg=`echo $nsdketpg|sed "s|^ *||"` #supprimer ' ' de trop 
 
 
-echo "Options : $nsdketpg"
-
-echo "Recursif : $recur"
-
-echo "Decroissant : $decrois"
+#echo "Options : $nsdketpg"
+#echo "Recursif : $recur"
+#echo "Decroissant : $decrois"
 
 
 
@@ -949,10 +937,8 @@ echo "Decroissant : $decrois"
 #Recupere liste (recursif ou non)
 if [ $recur -eq 1 ]
 then
-	echo "recursif"
 	afficherEltsRec $rep
 else
-	echo "non recursif"
 	afficherElts $rep
 fi
 
