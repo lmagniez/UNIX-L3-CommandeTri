@@ -450,6 +450,10 @@ function triBulle()
 #$1:liste $2:inv? $3-$#:cmpFoncs
 function tri_fusion()
 {
+	echo -n "
+Tri en Cours"
+	
+	
 	liste="$1"
 	inv=$2
 	
@@ -462,6 +466,7 @@ function tri_fusion()
 	#echo $1
 	tri_fusion2 "$liste" "$1" 1 $long $inv
 	liste="$res"
+	echo -n " ."
 	#####################
 	#	PLUSIEURS ARGS	#
 	#####################
@@ -483,6 +488,8 @@ function tri_fusion()
 	
 	for actualCmp in $*
 	do
+		
+		
 		
 		#echo "tab:" -$tab-
 		#echo "lastCmpFunc:" $lastCmpFunc
@@ -523,12 +530,15 @@ function tri_fusion()
 		tab=`echo $newtab|sed "s|^:*||"` #supprimer ':' de trop 
 		lastCmpFunc="$actualCmp" #le cmpActuel devient le cmpPrecedent
 		
+		echo -n " ."
+		
 	done
 	
 	IFS=$OLD_IFS
 	
 	#echo ">>>>>>$cmps<<<<<<"
-	
+	echo "
+	"
 	afficher2 $liste $cmps
 	
 }
@@ -743,6 +753,7 @@ function fusion()
 #Affiche pour une liste son chemin et l'ensemble des elts utilisés pour la comparaison
 #afficher2 "./aa:./test:./test/aa" "CmpNom CmpProprio CmpDate"
 #	-> Affiche chemin, nom, proprio et date pour chaque elt
+#N'affiche pas les caractéristiques du premier elt: dossier source
 #$1:liste $2:cmpFuncs 
 function afficher2()
 {	
@@ -755,8 +766,14 @@ function afficher2()
 	
 	#echo $1
 	
+	listeCpy=$1
 	
-	for i in $1
+	first=`echo "$listeCpy"|cut -d: -f1` #recupere et affiche premier elt
+	echo "Dossier: $first"
+	listeCpy=`echo "$listeCpy"|sed "s|[^:]*[:]*||"` #supprimer premier elt
+	
+	
+	for i in $listeCpy
 	{
 		
 		resultat="$i	"
@@ -829,6 +846,7 @@ recur=0
 decrois=0
 
 test $# -gt 4 && echo "Trop d'argument au maximum" && exit 1
+
 eval "rep=\${$#}"
 test ! -d "$rep" && echo "$rep n'est pas un dossier ! " && exit 1
 
